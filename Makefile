@@ -1,4 +1,4 @@
-SHELL := /bin/zsh
+SHELL := $(shell if [ -x /bin/zsh ]; then echo /bin/zsh; elif command -v bash >/dev/null 2>&1; then command -v bash; elif command -v sh >/dev/null 2>&1; then command -v sh; elif command -v pwsh >/dev/null 2>&1; then command -v pwsh; else echo /bin/sh; fi)
 
 ROOT_DIR := $(CURDIR)
 SERVER_DIR := $(ROOT_DIR)/server
