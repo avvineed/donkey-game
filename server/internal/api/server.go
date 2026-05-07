@@ -26,6 +26,7 @@ func NewServer(manager *game.Manager) *Server {
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", s.handleHealth)
+	mux.HandleFunc("/api/health", s.handleHealth)
 	mux.HandleFunc("/api/rooms", s.handleCreateRoom)
 	mux.HandleFunc("/api/rooms/join", s.handleJoinRoom)
 	mux.HandleFunc("/api/rooms/reconnect", s.handleReconnect)
@@ -37,7 +38,7 @@ func (s *Server) Routes() http.Handler {
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	writeJSON(w, http.StatusOK, map[string]bool{"status": true})
 }
 
 type createRoomRequest struct {

@@ -1,6 +1,28 @@
 import type { Card, PublicState } from "./types";
 
-const API_BASE = "http://localhost:8080";
+function getApiBase() {
+  if (import.meta.env.VITE_API_BASE) {
+    return import.meta.env.VITE_API_BASE;
+  }
+  if (typeof window !== "undefined") {
+    return `${window.location.protocol}//${window.location.hostname}:8080`;
+  }
+  return "http://127.0.0.1:8080";
+}
+
+function getWebSocketBase() {
+  if (import.meta.env.VITE_WS_BASE) {
+    return import.meta.env.VITE_WS_BASE;
+  }
+  if (typeof window !== "undefined") {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${window.location.hostname}:8080`;
+  }
+  return "ws://127.0.0.1:8080";
+}
+
+const API_BASE = getApiBase();
+const WS_BASE = getWebSocketBase();
 
 async function request<T>(path: string, init: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -106,7 +128,7 @@ export async function playCard(roomId: string, playerId: string, card: Card) {
 }
 
 export function openRoomSocket(roomId: string, playerId: string, onState: (state: PublicState) => void) {
-  const socket = new WebSocket(`ws://localhost:8080/ws?roomId=${roomId}&playerId=${playerId}`);
+  const socket = new WebSocket(`${WS_BASE}/ws?roomId=${roomId}&playerId=${playerId}`);
   socket.addEventListener("message", (event) => {
     const envelope = JSON.parse(event.data) as { type: string; data: PublicState };
     if (envelope.type === "state_sync") {

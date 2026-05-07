@@ -27,15 +27,15 @@ install:
 	cd $(CLIENT_DIR) && npm install
 
 start: start-server start-client
-	@echo "Backend:  http://127.0.0.1:8080"
-	@echo "Frontend: http://127.0.0.1:5173"
+	@echo "Backend:  http://0.0.0.0:8080"
+	@echo "Frontend: http://0.0.0.0:5173"
 
 start-server:
 	@mkdir -p $(RUN_DIR)
 	@if [ -f $(SERVER_PID) ] && kill -0 "$$(cat $(SERVER_PID))" 2>/dev/null; then \
 		echo "Backend already running with pid $$(cat $(SERVER_PID))"; \
 	else \
-		cd $(SERVER_DIR) && GOCACHE=$(GO_CACHE) nohup go run ./cmd/server > $(SERVER_LOG) 2>&1 & echo $$! > $(SERVER_PID); \
+		cd $(SERVER_DIR) && ADDR=0.0.0.0:8080 GOCACHE=$(GO_CACHE) nohup go run ./cmd/server > $(SERVER_LOG) 2>&1 & echo $$! > $(SERVER_PID); \
 		echo "Started backend with pid $$(cat $(SERVER_PID))"; \
 	fi
 
@@ -44,7 +44,7 @@ start-client:
 	@if [ -f $(CLIENT_PID) ] && kill -0 "$$(cat $(CLIENT_PID))" 2>/dev/null; then \
 		echo "Frontend already running with pid $$(cat $(CLIENT_PID))"; \
 	else \
-		cd $(CLIENT_DIR) && nohup npm run dev -- --host 127.0.0.1 > $(CLIENT_LOG) 2>&1 & echo $$! > $(CLIENT_PID); \
+		cd $(CLIENT_DIR) && nohup npm run dev -- --host 0.0.0.0 > $(CLIENT_LOG) 2>&1 & echo $$! > $(CLIENT_PID); \
 		echo "Started frontend with pid $$(cat $(CLIENT_PID))"; \
 	fi
 

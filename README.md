@@ -30,8 +30,8 @@ make start
 
 That starts:
 
-- backend at `http://127.0.0.1:8080`
-- frontend at `http://127.0.0.1:5173`
+- backend at `http://0.0.0.0:8080`
+- frontend at `http://0.0.0.0:5173`
 
 Stop both:
 
