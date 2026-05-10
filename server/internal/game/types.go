@@ -86,8 +86,19 @@ type GameState struct {
 	WinnerPlayerID string         `json:"winnerPlayerId"`
 	Round          RoundState     `json:"round"`
 	LastEvent      string         `json:"lastEvent"`
+	RecentActions  []RecentAction `json:"recentActions"`
 	Stall          *StallState    `json:"stall,omitempty"`
 	PlayerHands    map[string]int `json:"-"`
+}
+
+type RecentAction struct {
+	Type      string `json:"type"`
+	PlayerID  string `json:"playerId"`
+	Player    string `json:"player"`
+	CardLabel string `json:"cardLabel,omitempty"`
+	Message   string `json:"message"`
+	TargetID  string `json:"targetId,omitempty"`
+	Target    string `json:"target,omitempty"`
 }
 
 type StallState struct {

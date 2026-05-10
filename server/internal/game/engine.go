@@ -203,6 +203,7 @@ func (m *Manager) StartGame(roomID, playerID string) (*Room, error) {
 		LeadPlayerID:  aceHolder,
 		StartedAt:     time.Now().UTC(),
 		FinishedOrder: []string{},
+		RecentActions: []RecentAction{},
 		Round: RoundState{
 			LeadPlayerID: aceHolder,
 			TableCards:   []TableCard{},
@@ -261,6 +262,13 @@ func (m *Manager) PlayCard(roomID, playerID string, card Card) (*Room, error) {
 	room.Game.PlayerHands[playerID] = len(room.PlayerHands[playerID])
 	player := getPlayer(room, playerID)
 	player.CardsRemaining = len(room.PlayerHands[playerID])
+	appendRecentAction(room.Game, RecentAction{
+		Type:      "play",
+		PlayerID:  player.ID,
+		Player:    player.Nickname,
+		CardLabel: formatCardLabel(card),
+		Message:   fmt.Sprintf("%s played %s.", player.Nickname, formatCardLabel(card)),
+	})
 
 	if len(room.Game.Round.TableCards) == 1 {
 		room.Game.Round.LeadPlayerID = playerID
@@ -392,6 +400,20 @@ func (m *Manager) resolveStrike(room *Room) {
 	room.Game.LeadPlayerID = collectorID
 	room.Game.CurrentTurnID = collectorID
 	room.Game.LastEvent = "strike_occurred"
+	appendRecentAction(room.Game, RecentAction{
+		Type:      "cut",
+		PlayerID:  table[len(table)-1].PlayerID,
+		Player:    getPlayer(room, table[len(table)-1].PlayerID).Nickname,
+		CardLabel: formatCardLabel(table[len(table)-1].Card),
+		TargetID:  collectorID,
+		Target:    collector.Nickname,
+		Message: fmt.Sprintf(
+			"%s cut with %s. %s collects the cards.",
+			getPlayer(room, table[len(table)-1].PlayerID).Nickname,
+			formatCardLabel(table[len(table)-1].Card),
+			collector.Nickname,
+		),
+	})
 	m.updateFinishedPlayers(room)
 	m.finishIfNeeded(room)
 }
@@ -410,6 +432,13 @@ func (m *Manager) resolveFullRound(room *Room) {
 	room.Game.LeadPlayerID = highest.PlayerID
 	room.Game.CurrentTurnID = highest.PlayerID
 	room.Game.LastEvent = "round_resolved"
+	appendRecentAction(room.Game, RecentAction{
+		Type:      "round_win",
+		PlayerID:  highest.PlayerID,
+		Player:    getPlayer(room, highest.PlayerID).Nickname,
+		CardLabel: formatCardLabel(highest.Card),
+		Message:   fmt.Sprintf("%s won the round with %s.", getPlayer(room, highest.PlayerID).Nickname, formatCardLabel(highest.Card)),
+	})
 	m.updateFinishedPlayers(room)
 	m.finishIfNeeded(room)
 }
@@ -492,6 +521,33 @@ func reclaimDisconnectedPlayer(room *Room, nickname string) *Player {
 		}
 	}
 	return nil
+}
+
+func appendRecentAction(game *GameState, action RecentAction) {
+	game.RecentActions = append([]RecentAction{action}, game.RecentActions...)
+	if len(game.RecentActions) > 5 {
+		game.RecentActions = game.RecentActions[:5]
+	}
+}
+
+func formatCardLabel(card Card) string {
+	ranks := map[Rank]string{
+		11: "J",
+		12: "Q",
+		13: "K",
+		14: "A",
+	}
+	suits := map[Suit]string{
+		Spades:   "Spades",
+		Hearts:   "Hearts",
+		Diamonds: "Diamonds",
+		Clubs:    "Clubs",
+	}
+	rank := ranks[card.Rank]
+	if rank == "" {
+		rank = itoa(int(card.Rank))
+	}
+	return fmt.Sprintf("%s of %s", rank, suits[card.Suit])
 }
 
 func publicStateForPlayer(room *Room, playerID string) PublicState {

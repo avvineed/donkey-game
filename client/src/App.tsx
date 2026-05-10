@@ -296,6 +296,7 @@ function GameTable({ state, session, error, submitting, onPlay }: GameTableProps
 
   const tableCards = game.round.tableCards ?? [];
   const finishedOrder = game.finishedOrder ?? [];
+  const recentActions = game.recentActions ?? [];
   const currentTurnId = game.currentTurnPlayerId;
   const stallDeadline = game.stall ? new Date(game.stall.reconnectDeadline).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
 
@@ -332,6 +333,20 @@ function GameTable({ state, session, error, submitting, onPlay }: GameTableProps
               <small>{nameFor(state, entry.playerId, session.playerId)}</small>
             </div>
           ))}
+        </div>
+        <div className="recent-actions">
+          <div className="section-heading">
+            <p className="eyebrow">Recent play</p>
+            <h3>Latest cards and cuts</h3>
+          </div>
+          {recentActions.length === 0 ? <p className="subtle">Recent actions will appear here as the round progresses.</p> : null}
+          <ul className="activity-list">
+            {recentActions.map((action, index) => (
+              <li key={`${action.type}-${action.playerId}-${index}`} className={action.type === "cut" ? "activity-cut" : ""}>
+                <span>{action.message}</span>
+              </li>
+            ))}
+          </ul>
         </div>
         {game.phase === "game_over" ? (
           <div className="result-banner">

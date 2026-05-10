@@ -36,6 +36,15 @@ export type GameState = {
     tableCards: TableCard[];
     discardCount: number;
   };
+  recentActions: Array<{
+    type: string;
+    playerId: string;
+    player: string;
+    cardLabel?: string;
+    message: string;
+    targetId?: string;
+    target?: string;
+  }>;
   stall?: {
     disconnectedPlayerId: string;
     disconnectedNickname: string;

@@ -183,3 +183,45 @@ func TestJoinRoomReclaimsDisconnectedPlayerDuringStall(t *testing.T) {
 		t.Fatal("expected fresh session token")
 	}
 }
+
+func TestStrikeAddsRecentCutNotification(t *testing.T) {
+	manager := NewManager(1)
+	room := &Room{
+		ID:     "room",
+		Status: RoomInGame,
+		Players: []*Player{
+			{ID: "p1", Nickname: "A", SeatIndex: 0},
+			{ID: "p2", Nickname: "B", SeatIndex: 1},
+			{ID: "p3", Nickname: "C", SeatIndex: 2},
+		},
+		PlayerHands: map[string][]Card{
+			"p1": {{Suit: Spades, Rank: 14}},
+			"p2": {{Suit: Hearts, Rank: 9}},
+			"p3": {{Suit: Clubs, Rank: 5}},
+		},
+		Game: &GameState{
+			Phase:         PhaseAwaitingTurn,
+			CurrentTurnID: "p2",
+			LeadPlayerID:  "p1",
+			RecentActions: []RecentAction{},
+			Round: RoundState{
+				LeadPlayerID: "p1",
+				ActiveSuit:   Spades,
+				TableCards:   []TableCard{{PlayerID: "p1", Card: Card{Suit: Spades, Rank: 14}}},
+			},
+			PlayerHands: map[string]int{"p1": 1, "p2": 1, "p3": 1},
+		},
+	}
+	manager.rooms[room.ID] = room
+
+	updated, err := manager.PlayCard(room.ID, "p2", Card{Suit: Hearts, Rank: 9})
+	if err != nil {
+		t.Fatalf("PlayCard error = %v", err)
+	}
+	if len(updated.Game.RecentActions) == 0 {
+		t.Fatal("expected recent actions")
+	}
+	if updated.Game.RecentActions[0].Type != "cut" {
+		t.Fatalf("recent action type = %s, want cut", updated.Game.RecentActions[0].Type)
+	}
+}

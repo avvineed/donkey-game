@@ -49,6 +49,7 @@ function normalizeState(state: PublicState): PublicState {
         ? {
             ...state.room.game,
             finishedOrder: state.room.game.finishedOrder ?? [],
+            recentActions: state.room.game.recentActions ?? [],
             round: {
               ...state.room.game.round,
               tableCards: state.room.game.round.tableCards ?? []
